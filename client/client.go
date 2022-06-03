@@ -3,8 +3,11 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
+	"math/rand"
 	"net"
+	"os"
 	"time"
 )
 
@@ -28,24 +31,56 @@ func main() {
 		}
 	}()
 
-	example := [][]byte{
-		[]byte("111\n222\n333"),
-		[]byte("444"),
-		[]byte("777\n"),
-		[]byte("\n"),
-		[]byte("\n666\n777"),
-		[]byte("111\n222"),
-		[]byte("111\n222\n"),
+	f, err := os.Open("book.txt")
+	if err != nil {
+		log.Println(err)
+		return
 	}
+	defer f.Close()
 
-	for _, bytes := range example {
+	r := bufio.NewReader(f)
+	buf := make([]byte, 0, 2000)
+	for {
 		time.Sleep(2 * time.Second)
-		fmt.Println("Sent to server =>", string(bytes))
-		_, err := conn.Write(bytes)
+		randLen := rand.Intn(500) // 1-n
+		fmt.Printf("take %d bytes from file\n", randLen)
+		n, err := io.ReadFull(r, buf[:randLen])
+		buf = buf[:n]
 		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			if err != io.ErrUnexpectedEOF {
+				log.Println(err)
+				break
+			}
+		}
+		_, err = conn.Write(buf)
+		if err != nil {
+			log.Println(err)
 			panic(err)
 		}
 	}
+
+	// -=Old=-
+	//	example := [][]byte{
+	//	[]byte("111\n222\n333"),
+	//	[]byte("444"),
+	//	[]byte("777\n"),
+	//	[]byte("\n"),
+	//	[]byte("\n666\n777"),
+	//	[]byte("111\n222"),
+	//	[]byte("111\n222\n"),
+	//}
+	//
+	//for _, bytes := range example {
+	//	time.Sleep(2 * time.Second)
+	//	fmt.Println("Sent to server =>", string(bytes))
+	//	_, err := conn.Write(bytes)
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//}
 	select {}
 
 }
