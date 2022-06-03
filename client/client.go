@@ -18,9 +18,9 @@ func main() {
 	}
 	defer conn.Close()
 
-	go func() {
+	go func() { //waiting response from server
 		buf := bufio.NewReader(conn)
-		for {
+		for { //do something with response
 			time.Sleep(100 * time.Millisecond)
 			msg, err := buf.ReadBytes('\n')
 			if err != nil {
@@ -31,7 +31,7 @@ func main() {
 		}
 	}()
 
-	f, err := os.Open("book.txt")
+	f, err := os.Open("book.txt") // data for example
 	if err != nil {
 		log.Println(err)
 		return
@@ -42,7 +42,7 @@ func main() {
 	buf := make([]byte, 0, 2000)
 	for {
 		time.Sleep(2 * time.Second)
-		randLen := rand.Intn(500) // 1-n
+		randLen := rand.Intn(500) // data will be sent in chunks of 1-500 bytes
 		fmt.Printf("take %d bytes from file\n", randLen)
 		n, err := io.ReadFull(r, buf[:randLen])
 		buf = buf[:n]
@@ -55,7 +55,7 @@ func main() {
 				break
 			}
 		}
-		_, err = conn.Write(buf)
+		_, err = conn.Write(buf) // send data to server
 		if err != nil {
 			log.Println(err)
 			panic(err)
